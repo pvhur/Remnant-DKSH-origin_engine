@@ -1,0 +1,74 @@
+// Prisma 스키마 파일
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" // PostgreSQL 사용 (오라클 클라우드에서도 사용 가능)
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(uuid())
+  email         String         @unique
+  name          String
+  password      String         // 해시된 비밀번호
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+model Refund {
+  id           String   @id @default(uuid())
+  orderId      String   @unique
+  customerName String
+  amount       Int      // 원 단위
+  reason       String
+  status       String   // 처리 완료, 처리 중, 대기
+  category     String
+  requestDate  DateTime
+  processDate  DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("refunds")
+}
+
+model CustomerSegment {
+  id    String @id @default(uuid())
+  name  String @unique
+  count Int
+  clv   Int    // 평균 CLV (원 단위)
+  growth String // 성장률
+
+  @@map("customer_segments")
+}
+
+model Campaign {
+  id        String   @id @default(uuid())
+  name      String
+  budget    Int      // 예산 (원 단위)
+  revenue   Int      // 매출 (원 단위)
+  roi       Int      // ROI (%)
+  status    String   // 진행 중, 완료
+  startDate DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("campaigns")
+}
+
